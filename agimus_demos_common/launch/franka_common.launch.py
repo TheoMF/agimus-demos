@@ -26,6 +26,7 @@ def launch_setup(
 ) -> list[LaunchDescriptionEntity]:
     arm_id = LaunchConfiguration("arm_id")
     robot_ip = LaunchConfiguration("robot_ip")
+    use_gazebo = LaunchConfiguration("use_gazebo")
     load_gripper = LaunchConfiguration("load_gripper")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     fake_sensor_commands = LaunchConfiguration("fake_sensor_commands")
@@ -34,9 +35,18 @@ def launch_setup(
     rviz_config_path = LaunchConfiguration("rviz_config_path")
 
     arm_id_str = context.perform_substitution(arm_id)
-    franka_controllers_params_str = context.perform_substitution(
-        franka_controllers_params
-    )
+    xacro_args = {
+        "robot_ip": robot_ip,
+        "arm_id": arm_id,
+        "ros2_control": "true",
+        "hand": load_gripper,
+        "use_fake_hardware": use_fake_hardware,
+        "fake_sensor_commands": fake_sensor_commands,
+        "gazebo": use_gazebo,
+        "ee_id": "franka_hand",
+        "gazebo_effort": "true",
+        "franka_controllers_params": franka_controllers_params,
+    }
 
     robot_description = ParameterValue(
         Command(
@@ -51,18 +61,8 @@ def launch_setup(
                         f"{arm_id_str}.urdf.xacro",
                     ]
                 ),
-                " ros2_control:=",
-                "true",
-                " arm_id:=",
-                arm_id,
-                " robot_ip:=",
-                robot_ip,
-                " hand:=",
-                load_gripper,
-                " use_fake_hardware:=",
-                use_fake_hardware,
-                " fake_sensor_commands:=",
-                fake_sensor_commands,
+                # Convert dict to list of parameters
+                *[arg for key, val in xacro_args.items() for arg in (f" {key}:=", val)],
             ]
         ),
         value_type=str,
@@ -75,22 +75,7 @@ def launch_setup(
         output="screen",
         parameters=[{"robot_description": robot_description}],
     )
-    controller_manager_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[
-            franka_controllers_params_str,
-            {"robot_description": robot_description},
-            {"arm_id": arm_id},
-            {"load_gripper": load_gripper},
-        ],
-        remappings=[("joint_states", "franka/joint_states")],
-        output={
-            "stdout": "screen",
-            "stderr": "screen",
-        },
-        on_exit=Shutdown(),
-    )
+
     joint_state_publisher_node = Node(
         package="joint_state_publisher",
         executable="joint_state_publisher",
@@ -105,36 +90,7 @@ def launch_setup(
             }
         ],
     )
-    load_joint_state_broadcaster = generate_load_controller_launch_description(
-        controller_name="joint_state_broadcaster",
-        controller_type="franka_robot_state_broadcaster/FrankaRobotStateBroadcaster",
-    )
-    load_franka_robot_state_broadcaster = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["franka_robot_state_broadcaster"],
-        parameters=[{"arm_id": arm_id}],
-        output="screen",
-        condition=UnlessCondition(use_fake_hardware),
-    )
-    franka_gripper_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare("franka_gripper"),
-                        "launch",
-                        "gripper.launch.py",
-                    ]
-                )
-            ]
-        ),
-        launch_arguments={
-            "robot_ip": robot_ip,
-            "use_fake_hardware": use_fake_hardware,
-        }.items(),
-        condition=IfCondition(load_gripper),
-    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -142,13 +98,10 @@ def launch_setup(
         arguments=["--display-config", rviz_config_path],
         condition=IfCondition(use_rviz),
     )
+
     return [
         robot_state_publisher_node,
-        controller_manager_node,
         joint_state_publisher_node,
-        load_joint_state_broadcaster,
-        load_franka_robot_state_broadcaster,
-        franka_gripper_launch,
         rviz_node,
     ]
 
@@ -161,7 +114,13 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "arm_id",
+            default_value="fer",
             description="ID of the type of arm used. Supported values: fer, fr3, fp3",
+        ),
+        DeclareLaunchArgument(
+            "use_gazebo",
+            default_value="false",
+            description="Wether to configure launch file for Gazebo or for real robot.",
         ),
         DeclareLaunchArgument(
             "use_fake_hardware",
@@ -194,9 +153,9 @@ def generate_launch_description():
             "rviz_config_path",
             default_value=PathJoinSubstitution(
                 [
-                    FindPackageShare("franka_description"),
+                    FindPackageShare("agimus_demos_common"),
                     "rviz",
-                    "visualize_franka.rviz",
+                    "franka_preview.rviz",
                 ]
             ),
             description="Path to RViz configuration file",

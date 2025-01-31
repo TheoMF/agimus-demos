@@ -15,6 +15,6 @@ ament_auto_find_build_dependencies()
 # Installation
 #
 # install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY config launch rviz DESTINATION share/${PROJECT_NAME})
 
 ament_auto_package()

@@ -14,10 +14,22 @@
   <url type="bugtracker">https://github.com/agimus-project/agimus-demos/issues</url>
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>franka_description</exec_depend>
+  <exec_depend>franka_gripper</exec_depend>
+  <exec_depend>franka_hardware</exec_depend>
+  <exec_depend>franka_ign_ros2_control</exec_depend>
+  <exec_depend>franka_robot_state_broadcaster</exec_depend>
+  <exec_depend>gripper_controllers</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>ros2launch</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>xacro</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
-    <controller_interface plugin="${prefix}/controller_plugins.xml" />
   </export>
 </package>
