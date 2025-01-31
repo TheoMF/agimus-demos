@@ -5,7 +5,6 @@ from launch.actions import (
     OpaqueFunction,
     Shutdown,
 )
-from launch.conditions import IfCondition
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
