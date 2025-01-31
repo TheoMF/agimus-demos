@@ -20,5 +20,5 @@ gripper_action_controller:
     gains.fer_finger_joint1:
       d: 10.0
       i: 0.0
-      i_clamp: 0.0 
+      i_clamp: 0.0
       p: 10.0
