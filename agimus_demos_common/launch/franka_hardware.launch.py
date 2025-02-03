@@ -75,12 +75,14 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             "robot_ip",
+            default_value="",
             description="Hostname or IP address of the robot.",
         ),
         DeclareLaunchArgument(
             "arm_id",
             default_value="fer",
             description="ID of the type of arm used. Supported values: fer, fr3, fp3",
+            choices=["fer", "fr3", "fp3"],
         ),
         DeclareLaunchArgument(
             "franka_controllers_params",

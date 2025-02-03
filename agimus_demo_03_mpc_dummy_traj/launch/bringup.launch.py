@@ -98,27 +98,38 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             "robot_ip",
+            default_value="",
             description="Hostname or IP address of the robot.",
         ),
         DeclareLaunchArgument(
             "arm_id",
             default_value="fer",
             description="ID of the type of arm used. Supported values: fer, fr3, fp3",
+            choices=["fer", "fr3", "fp3"],
         ),
         DeclareLaunchArgument(
-            "use_fake_hardware",
+            "use_gazebo",
             default_value="false",
-            description="Use fake hardware",
-        ),
-        DeclareLaunchArgument(
-            "fake_sensor_commands",
-            default_value="false",
-            description='Fake sensor commands. Only valid when "use_fake_hardware" is true',
+            description="Wether to configure launch file for Gazebo or for real robot.",
+            choices=["true", "false"],
         ),
         DeclareLaunchArgument(
             "use_rviz",
             default_value="false",
             description="Visualize the robot in RViz",
+            choices=["true", "false"],
+        ),
+        DeclareLaunchArgument(
+            "verbose",
+            default_value="false",
+            description="Wether to set verbosity level of Gazebo to 3.",
+            choices=["true", "false"],
+        ),
+        DeclareLaunchArgument(
+            "headless",
+            default_value="false",
+            description="Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).",
+            choices=["true", "false"],
         ),
     ]
 

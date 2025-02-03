@@ -85,11 +85,13 @@ def generate_launch_description():
             "verbose",
             default_value="false",
             description="Wether to set verbosity level of Gazebo to 3.",
+            choices=["true", "false"],
         ),
         DeclareLaunchArgument(
             "headless",
             default_value="false",
             description="Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).",
+            choices=["true", "false"],
         ),
     ]
     return LaunchDescription(
