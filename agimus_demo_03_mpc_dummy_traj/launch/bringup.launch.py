@@ -3,14 +3,13 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     OpaqueFunction,
-    RegisterEventHandler,
 )
-from launch.event_handlers import OnProcessExit
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+
 from controller_manager.launch_utils import (
     generate_controllers_spawner_launch_description,
 )
@@ -23,8 +22,8 @@ def launch_setup(
     robot_ip = LaunchConfiguration("robot_ip")
     use_gazebo = LaunchConfiguration("use_gazebo")
     use_rviz = LaunchConfiguration("use_rviz")
-    verbose = LaunchConfiguration("verbose")
-    headless = LaunchConfiguration("headless")
+    gz_verbose = LaunchConfiguration("gz_verbose")
+    gz_headless = LaunchConfiguration("gz_headless")
 
     franka_hardware_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -43,8 +42,8 @@ def launch_setup(
             "robot_ip": robot_ip,
             "use_gazebo": use_gazebo,
             "use_rviz": use_rviz,
-            "verbose": verbose,
-            "headless": headless,
+            "gz_verbose": gz_verbose,
+            "gz_headless": gz_headless,
         }.items(),
     )
 
@@ -120,13 +119,13 @@ def generate_launch_description():
             choices=["true", "false"],
         ),
         DeclareLaunchArgument(
-            "verbose",
+            "gz_verbose",
             default_value="false",
             description="Wether to set verbosity level of Gazebo to 3.",
             choices=["true", "false"],
         ),
         DeclareLaunchArgument(
-            "headless",
+            "gz_headless",
             default_value="false",
             description="Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).",
             choices=["true", "false"],

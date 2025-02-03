@@ -20,11 +20,11 @@ from controller_manager.launch_utils import (
 def launch_setup(
     context: LaunchContext, *args, **kwargs
 ) -> list[LaunchDescriptionEntity]:
-    verbose = LaunchConfiguration("verbose")
-    headless = LaunchConfiguration("headless")
+    gz_verbose = LaunchConfiguration("gz_verbose")
+    gz_headless = LaunchConfiguration("gz_headless")
 
-    verbose_bool = context.perform_substitution(verbose).lower() == "true"
-    headless_bool = context.perform_substitution(headless).lower() == "true"
+    gz_verbose_bool = context.perform_substitution(gz_verbose).lower() == "true"
+    gz_headless_bool = context.perform_substitution(gz_headless).lower() == "true"
     gz_gui_config_path_str = context.perform_substitution(
         PathJoinSubstitution(
             [
@@ -47,8 +47,8 @@ def launch_setup(
         ),
         launch_arguments={
             "gz_args": "empty.sdf -r"
-            + f" {'-s' if headless_bool else ''}"
-            + f" {'-v 3' if verbose_bool else ''}"
+            + f" {'-s' if gz_headless_bool else ''}"
+            + f" {'-v 3' if gz_verbose_bool else ''}"
             + f" --gui-config {gz_gui_config_path_str}"
         }.items(),
     )
@@ -82,13 +82,13 @@ def launch_setup(
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
-            "verbose",
+            "gz_verbose",
             default_value="false",
             description="Wether to set verbosity level of Gazebo to 3.",
             choices=["true", "false"],
         ),
         DeclareLaunchArgument(
-            "headless",
+            "gz_headless",
             default_value="false",
             description="Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).",
             choices=["true", "false"],
