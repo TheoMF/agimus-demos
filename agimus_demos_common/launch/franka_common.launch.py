@@ -3,6 +3,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
     IncludeLaunchDescription,
+    RegisterEventHandler,
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -16,8 +17,16 @@ from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
 )
+from launch.event_handlers import OnProcessExit
 
-from agimus_demos_common.launch_utils import generate_default_franka_args
+from controller_manager.launch_utils import (
+    generate_load_controller_launch_description,
+)
+
+
+from agimus_demos_common.launch_utils import (
+    generate_default_franka_args,
+)
 
 
 def launch_setup(
@@ -27,6 +36,9 @@ def launch_setup(
     robot_ip = LaunchConfiguration("robot_ip")
     use_gazebo = LaunchConfiguration("use_gazebo")
     franka_controllers_params = LaunchConfiguration("franka_controllers_params")
+    linear_feedback_controller_params = LaunchConfiguration(
+        "linear_feedback_controller_params"
+    )
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config_path = LaunchConfiguration("rviz_config_path")
     gz_verbose = LaunchConfiguration("gz_verbose")
@@ -83,6 +95,18 @@ def launch_setup(
             "gz_headless": gz_headless,
         }.items(),
         condition=IfCondition(use_gazebo),
+    )
+
+    load_linear_feedback_controller = generate_load_controller_launch_description(
+        controller_name="linear_feedback_controller",
+        controller_params_file=linear_feedback_controller_params,
+        extra_spawner_args=["--controller-manager-timeout", "1000"],
+    )
+
+    load_joint_state_estimator = generate_load_controller_launch_description(
+        controller_name="joint_state_estimator",
+        controller_params_file=linear_feedback_controller_params,
+        extra_spawner_args=["--controller-manager-timeout", "1000"],
     )
 
     arm_id_str = context.perform_substitution(arm_id)
@@ -153,6 +177,13 @@ def launch_setup(
     return [
         franka_hardware_launch,
         franka_simulation_launch,
+        load_linear_feedback_controller,
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=load_linear_feedback_controller.entities[-1],
+                on_exit=[load_joint_state_estimator],
+            )
+        ),
         robot_state_publisher_node,
         joint_state_publisher_node,
         rviz_node,
@@ -171,6 +202,18 @@ def generate_launch_description():
                 ]
             ),
             description="Path to the yaml file use to define controller parameters.",
+        ),
+        DeclareLaunchArgument(
+            "linear_feedback_controller_params",
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare("agimus_demos_common"),
+                    "config",
+                    "linear_feedback_controller_params.yaml",
+                ]
+            ),
+            description="Path to the yaml file use to define "
+            + "Linear Feedback Controller's and Joint State Estimator's params.",
         ),
         DeclareLaunchArgument(
             "rviz_config_path",
