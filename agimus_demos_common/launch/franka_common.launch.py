@@ -17,6 +17,8 @@ from launch.substitutions import (
     PathJoinSubstitution,
 )
 
+from agimus_demos_common.launch_utils import generate_default_franka_args
+
 
 def launch_setup(
     context: LaunchContext, *args, **kwargs
@@ -160,23 +162,6 @@ def launch_setup(
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
-            "robot_ip",
-            default_value="",
-            description="Hostname or IP address of the robot.",
-        ),
-        DeclareLaunchArgument(
-            "arm_id",
-            default_value="fer",
-            description="ID of the type of arm used. Supported values: fer, fr3, fp3",
-            choices=["fer", "fr3", "fp3"],
-        ),
-        DeclareLaunchArgument(
-            "use_gazebo",
-            default_value="false",
-            description="Wether to configure launch file for Gazebo or for real robot.",
-            choices=["true", "false"],
-        ),
-        DeclareLaunchArgument(
             "franka_controllers_params",
             default_value=PathJoinSubstitution(
                 [
@@ -186,12 +171,6 @@ def generate_launch_description():
                 ]
             ),
             description="Path to the yaml file use to define controller parameters.",
-        ),
-        DeclareLaunchArgument(
-            "use_rviz",
-            default_value="false",
-            description="Visualize the robot in RViz",
-            choices=["true", "false"],
         ),
         DeclareLaunchArgument(
             "rviz_config_path",
@@ -204,20 +183,10 @@ def generate_launch_description():
             ),
             description="Path to RViz configuration file",
         ),
-        DeclareLaunchArgument(
-            "gz_verbose",
-            default_value="false",
-            description="Wether to set verbosity level of Gazebo to 3.",
-            choices=["true", "false"],
-        ),
-        DeclareLaunchArgument(
-            "gz_headless",
-            default_value="false",
-            description="Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).",
-            choices=["true", "false"],
-        ),
     ]
 
     return LaunchDescription(
-        declared_arguments + [OpaqueFunction(function=launch_setup)]
+        declared_arguments
+        + generate_default_franka_args()
+        + [OpaqueFunction(function=launch_setup)]
     )

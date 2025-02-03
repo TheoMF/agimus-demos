@@ -14,6 +14,7 @@
   <url type="bugtracker">https://github.com/agimus-project/agimus-demos/issues</url>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <!-- Run-time dependencies -->
   <exec_depend>xacro</exec_depend>

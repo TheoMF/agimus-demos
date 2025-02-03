@@ -11,6 +11,9 @@ project(agimus_demos_common LANGUAGES CXX)
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+ament_python_install_package(agimus_demos_common SCRIPTS_DESTINATION
+                             lib/agimus_demos_common)
+
 #
 # Installation
 #
