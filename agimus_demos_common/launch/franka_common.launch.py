@@ -2,17 +2,20 @@ from launch import LaunchContext, LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
+    IncludeLaunchDescription,
 )
+from launch.conditions import IfCondition, UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_entity import LaunchDescriptionEntity
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import (
     Command,
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
-from launch.launch_description_entity import LaunchDescriptionEntity
-from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(
@@ -21,21 +24,73 @@ def launch_setup(
     arm_id = LaunchConfiguration("arm_id")
     robot_ip = LaunchConfiguration("robot_ip")
     use_gazebo = LaunchConfiguration("use_gazebo")
-    load_gripper = LaunchConfiguration("load_gripper")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
-    fake_sensor_commands = LaunchConfiguration("fake_sensor_commands")
     franka_controllers_params = LaunchConfiguration("franka_controllers_params")
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config_path = LaunchConfiguration("rviz_config_path")
+    verbose = LaunchConfiguration("verbose")
+    headless = LaunchConfiguration("headless")
+
+    robot_ip_empty = context.perform_substitution(robot_ip) == ""
+    use_gazebo_bool = context.perform_substitution(use_gazebo).lower() == "true"
+    if robot_ip_empty and not use_gazebo_bool:
+        raise RuntimeError(
+            "Incorrect launch configuration! Set `robot_ip` to configure hardware or "
+            "`gazebo:=true` to configure simulation."
+        )
+
+    if not robot_ip_empty and use_gazebo_bool:
+        raise RuntimeError(
+            "Incorrect launch configuration! Can not launch demo with both "
+            "`gazebo:=true` and non-empty `robot_ip`."
+        )
+
+    franka_hardware_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("agimus_demos_common"),
+                        "launch",
+                        "franka_hardware.launch.py",
+                    ]
+                )
+            ]
+        ),
+        launch_arguments={
+            "robot_ip": robot_ip,
+            "arm_id": arm_id,
+            "franka_controllers_params": franka_controllers_params,
+        }.items(),
+        condition=UnlessCondition(use_gazebo),
+    )
+
+    franka_simulation_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("agimus_demos_common"),
+                        "launch",
+                        "franka_simulation.launch.py",
+                    ]
+                )
+            ]
+        ),
+        launch_arguments={
+            "verbose": verbose,
+            "headless": headless,
+        }.items(),
+        condition=IfCondition(use_gazebo),
+    )
 
     arm_id_str = context.perform_substitution(arm_id)
     xacro_args = {
         "robot_ip": robot_ip,
         "arm_id": arm_id,
         "ros2_control": "true",
-        "hand": load_gripper,
-        "use_fake_hardware": use_fake_hardware,
-        "fake_sensor_commands": fake_sensor_commands,
+        "hand": "true",
+        "use_fake_hardware": "false",
+        "fake_sensor_commands": "false",
         "gazebo": use_gazebo,
         "ee_id": "franka_hand",
         "gazebo_effort": "true",
@@ -94,6 +149,8 @@ def launch_setup(
     )
 
     return [
+        franka_hardware_launch,
+        franka_simulation_launch,
         robot_state_publisher_node,
         joint_state_publisher_node,
         rviz_node,
@@ -104,42 +161,37 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             "robot_ip",
+            default_value="",
             description="Hostname or IP address of the robot.",
         ),
         DeclareLaunchArgument(
             "arm_id",
             default_value="fer",
             description="ID of the type of arm used. Supported values: fer, fr3, fp3",
+            choices=["fer", "fr3", "fp3"],
         ),
         DeclareLaunchArgument(
             "use_gazebo",
             default_value="false",
             description="Wether to configure launch file for Gazebo or for real robot.",
-        ),
-        DeclareLaunchArgument(
-            "use_fake_hardware",
-            default_value="false",
-            description="Use fake hardware",
-        ),
-        DeclareLaunchArgument(
-            "fake_sensor_commands",
-            default_value="false",
-            description='Fake sensor commands. Only valid when "use_fake_hardware" is true',
+            choices=["true", "false"],
         ),
         DeclareLaunchArgument(
             "franka_controllers_params",
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare("agimus_demos_common"),
+                    "config",
+                    "franka_controllers.yaml",
+                ]
+            ),
             description="Path to the yaml file use to define controller parameters.",
-        ),
-        DeclareLaunchArgument(
-            "load_gripper",
-            default_value="true",
-            description="Use Franka Gripper as an end-effector, otherwise, the robot is loaded "
-            "without an end-effector.",
         ),
         DeclareLaunchArgument(
             "use_rviz",
             default_value="false",
             description="Visualize the robot in RViz",
+            choices=["true", "false"],
         ),
         DeclareLaunchArgument(
             "rviz_config_path",
@@ -151,6 +203,18 @@ def generate_launch_description():
                 ]
             ),
             description="Path to RViz configuration file",
+        ),
+        DeclareLaunchArgument(
+            "verbose",
+            default_value="false",
+            description="Wether to set verbosity level of Gazebo to 3.",
+            choices=["true", "false"],
+        ),
+        DeclareLaunchArgument(
+            "headless",
+            default_value="false",
+            description="Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).",
+            choices=["true", "false"],
         ),
     ]
 

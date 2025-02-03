@@ -21,36 +21,7 @@ def launch_setup(
 ) -> list[LaunchDescriptionEntity]:
     arm_id = LaunchConfiguration("arm_id")
     robot_ip = LaunchConfiguration("robot_ip")
-    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
-    fake_sensor_commands = LaunchConfiguration("fake_sensor_commands")
     franka_controllers_params = LaunchConfiguration("franka_controllers_params")
-    use_rviz = LaunchConfiguration("use_rviz")
-    rviz_config_path = LaunchConfiguration("rviz_config_path")
-
-    franka_common_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare("agimus_demos_common"),
-                        "launch",
-                        "franka_common.launch.py",
-                    ]
-                )
-            ]
-        ),
-        launch_arguments={
-            "arm_id": arm_id,
-            "robot_ip": robot_ip,
-            "use_gazebo": "false",
-            "load_gripper": "true",
-            "use_fake_hardware": use_fake_hardware,
-            "fake_sensor_commands": fake_sensor_commands,
-            "franka_controllers_params": franka_controllers_params,
-            "use_rviz": use_rviz,
-            "rviz_config_path": rviz_config_path,
-        }.items(),
-    )
 
     controller_manager_node = Node(
         package="controller_manager",
@@ -89,12 +60,11 @@ def launch_setup(
         ),
         launch_arguments={
             "robot_ip": robot_ip,
-            "use_fake_hardware": use_fake_hardware,
+            "use_fake_hardware": "false",
         }.items(),
     )
 
     return [
-        franka_common_launch,
         controller_manager_node,
         spawn_default_controllers,
         franka_gripper_launch,
@@ -113,16 +83,6 @@ def generate_launch_description():
             description="ID of the type of arm used. Supported values: fer, fr3, fp3",
         ),
         DeclareLaunchArgument(
-            "use_fake_hardware",
-            default_value="false",
-            description="Use fake hardware",
-        ),
-        DeclareLaunchArgument(
-            "fake_sensor_commands",
-            default_value="false",
-            description='Fake sensor commands. Only valid when "use_fake_hardware" is true',
-        ),
-        DeclareLaunchArgument(
             "franka_controllers_params",
             default_value=PathJoinSubstitution(
                 [
@@ -132,22 +92,6 @@ def generate_launch_description():
                 ]
             ),
             description="Path to the yaml file used to define controller parameters.",
-        ),
-        DeclareLaunchArgument(
-            "use_rviz",
-            default_value="false",
-            description="Visualize the robot in RViz",
-        ),
-        DeclareLaunchArgument(
-            "rviz_config_path",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("agimus_demos_common"),
-                    "rviz",
-                    "franka_preview.rviz",
-                ]
-            ),
-            description="Path to RViz configuration file",
         ),
     ]
 

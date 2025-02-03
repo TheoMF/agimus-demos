@@ -20,37 +20,8 @@ from controller_manager.launch_utils import (
 def launch_setup(
     context: LaunchContext, *args, **kwargs
 ) -> list[LaunchDescriptionEntity]:
-    arm_id = LaunchConfiguration("arm_id")
-    franka_controllers_params = LaunchConfiguration("franka_controllers_params")
-    use_rviz = LaunchConfiguration("use_rviz")
-    rviz_config_path = LaunchConfiguration("rviz_config_path")
     verbose = LaunchConfiguration("verbose")
     headless = LaunchConfiguration("headless")
-
-    franka_common_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare("agimus_demos_common"),
-                        "launch",
-                        "franka_common.launch.py",
-                    ]
-                )
-            ]
-        ),
-        launch_arguments={
-            "arm_id": arm_id,
-            "robot_ip": "",
-            "use_gazebo": "true",
-            "load_gripper": "true",
-            "use_fake_hardware": "false",
-            "fake_sensor_commands": "false",
-            "franka_controllers_params": franka_controllers_params,
-            "use_rviz": use_rviz,
-            "rviz_config_path": rviz_config_path,
-        }.items(),
-    )
 
     verbose_bool = context.perform_substitution(verbose).lower() == "true"
     headless_bool = context.perform_substitution(headless).lower() == "true"
@@ -97,7 +68,6 @@ def launch_setup(
     )
 
     return [
-        franka_common_launch,
         gazebo_empty_world,
         robot_spawner_node,
         RegisterEventHandler(
@@ -111,38 +81,6 @@ def launch_setup(
 
 def generate_launch_description():
     declared_arguments = [
-        DeclareLaunchArgument(
-            "arm_id",
-            default_value="fer",
-            description="ID of the type of arm used. Supported values: fer, fr3, fp3",
-        ),
-        DeclareLaunchArgument(
-            "franka_controllers_params",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("agimus_demos_common"),
-                    "config",
-                    "franka_controllers.yaml",
-                ]
-            ),
-            description="Path to the yaml file used to define controller parameters.",
-        ),
-        DeclareLaunchArgument(
-            "use_rviz",
-            default_value="false",
-            description="Visualize the robot in RViz",
-        ),
-        DeclareLaunchArgument(
-            "rviz_config_path",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("agimus_demos_common"),
-                    "rviz",
-                    "franka_preview.rviz",
-                ]
-            ),
-            description="Path to RViz configuration file",
-        ),
         DeclareLaunchArgument(
             "verbose",
             default_value="false",
