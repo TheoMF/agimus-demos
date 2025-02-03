@@ -124,9 +124,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "fake_sensor_commands",
             default_value="false",
-            description='Fake sensor commands. Only valid when "{}" is true'.format(
-                "use_fake_hardware"
-            ),
+            description='Fake sensor commands. Only valid when "use_fake_hardware" is true',
         ),
         DeclareLaunchArgument(
             "franka_controllers_params",
