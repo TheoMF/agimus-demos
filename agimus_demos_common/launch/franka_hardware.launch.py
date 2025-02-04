@@ -30,8 +30,7 @@ def launch_setup(
         executable="ros2_control_node",
         parameters=[
             franka_controllers_params,
-            {"arm_id": arm_id},
-            {"load_gripper": "true"},
+            {"arm_id": arm_id, "load_gripper": "true"},
         ],
         remappings=[
             ("joint_states", "franka/joint_states"),

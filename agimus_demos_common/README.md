@@ -71,6 +71,7 @@ This package provides utility functions to ease up creation of new launch files.
 
 ```python
 from agimus_demos_common.launch_utils import (
+    generate_initial_hardware_checks,
     generate_default_franka_args,
     generate_include_franka_launch,
 )
@@ -82,6 +83,15 @@ def launch_setup(
     # Helper function that includes `franka_common_lfc.launch.py`
     franka_robot_launch = generate_include_franka_launch("franka_common_lfc.launch.py")
 
+    # Utility ROS node, delaying stat of other nodes until
+    # robot's position was initialized in the simulation.
+    # Has no impact on hardware.
+    wait_for_non_zero_joints_node = Node(
+        package="agimus_demos_common",
+        executable="wait_for_non_zero_joints_node",
+        output="screen",
+    )
+
     my_awesome_node = Node(
         package="my_awesome_package",
         executable="my_awesome_node",
@@ -89,7 +99,13 @@ def launch_setup(
 
     return [
         franka_robot_launch,
-        my_awesome_node,
+        wait_for_non_zero_joints_node,
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=wait_for_non_zero_joints_node,
+                on_exit=[my_awesome_node],
+            )
+        ),
     ]
 
 
@@ -104,3 +120,29 @@ def generate_launch_description():
 Function `generate_default_franka_args()` ensures all launch arguments used by `franka_common.launch.py` are exposed by launch file, while `generate_include_franka_launch()` includes that file and uses those declared parameters.
 
 Function `generate_default_franka_args()` is directly used by `franka_common.launch.py`, so all arguments exposed by it are described in the documentation above.
+
+## Nodes
+
+### wait_for_non_zero_joints_node
+
+Utility ROS node, mean to delay launch of other nodes until Gazebo simulation starts publishing non-zero joint states. It will subscribe to the topic and exit with exist code `0` when sum of absolute values of joint positions will be greater than set threshold. Otherwise if threshold is not exceeded and timeout si reached the node return exit code `1`, indicating error.
+
+### Subscribers
+
+- **/joint_states** [sensor_msgs/msg/JointState]
+
+    Values of joint states of the robot.
+
+### Parameters
+
+- **timeout** [*double*]:
+
+    Default: *10.0*
+
+    Time to wait for joint positions to be above threshold.
+
+- **timeout** [*double*]:
+
+    Default: *1e-3*
+
+    Threshold for sum of absolute values of joint positions used to determine success.
