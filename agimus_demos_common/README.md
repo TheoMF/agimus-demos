@@ -79,8 +79,8 @@ from agimus_demos_common.launch_utils import (
 def launch_setup(
     context: LaunchContext, *args, **kwargs
 ) -> list[LaunchDescriptionEntity]:
-    # Helper function that includes `franka_common.launch.py`
-    franka_robot_launch = generate_include_franka_launch()
+    # Helper function that includes `franka_common_lfc.launch.py`
+    franka_robot_launch = generate_include_franka_launch("franka_common_lfc.launch.py")
 
     my_awesome_node = Node(
         package="my_awesome_package",

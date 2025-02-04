@@ -68,6 +68,12 @@ def generate_include_franka_launch(launch_file_name: str) -> IncludeLaunchDescri
     Returns:
         IncludeLaunchDescription: Include launch description with all default parameters passed to it.
     """
+    public_launch_files = ["franka_common.launch.py", "franka_common_lfc.launch.py"]
+    if launch_file_name not in public_launch_files:
+        raise RuntimeError(
+            f"Incorrect launch file name! '{launch_file_name}' is not part of public API "
+            + f"launch files of Agimus Demos! Allowed options are {public_launch_files}!"
+        )
     return IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
