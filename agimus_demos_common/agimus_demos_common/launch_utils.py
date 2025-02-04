@@ -5,6 +5,13 @@ from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 
 
 def generate_default_franka_args() -> list[DeclareLaunchArgument]:
+    """Generates list of default arguments expected to be public interface of
+        launch files used by Agimus Demos for Franka robots.
+
+    Returns:
+        list[DeclareLaunchArgument]: List of DeclareLaunchArgument objects with
+            arguments expected by `franka_common.launch.py` and `franka_common_lfc.launch.py`
+    """
     return [
         DeclareLaunchArgument(
             "robot_ip",
@@ -49,9 +56,18 @@ def generate_default_franka_args() -> list[DeclareLaunchArgument]:
     ]
 
 
-def generate_include_franka_launch(
-    launch_file_name: str = "franka_common_lfc.launch.py",
-) -> IncludeLaunchDescription:
+def generate_include_franka_launch(launch_file_name: str) -> IncludeLaunchDescription:
+    """Generates IncludeLaunchDescription object of default launch files
+        for Agimus Demos for Franka robots. Automatically obtains values of launch arguments required
+        by the launch file. Assumes argument are declared with function `generate_default_franka_args()`.
+
+    Args:
+        launch_file_name (str, optional): Name of the python launch file to included
+            from directory agimus_demos_common/launch. Defaults to "franka_common_lfc.launch.py".
+
+    Returns:
+        IncludeLaunchDescription: Include launch description with all default parameters passed to it.
+    """
     return IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [

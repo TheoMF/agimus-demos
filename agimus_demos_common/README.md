@@ -4,22 +4,23 @@ Package containing common launch and config files used across different demos.
 
 This package intends to be used as a common source of basic launch files allowing to bring up both simulation and real robot in a unified manner.
 
+> [!NOTE]
+> All launch files specific to robot are expected to share common set of launch arguments. For Franka robots this common set of arguments should be generated with function `generate_default_franka_args()` found in [launch_utils.py](agimus_demos_common/launch_utils.py). Description of those arguments can be found below.
+
 ## Launch files
 
-**franka_common.launch.py** is meant to be included in demos where Franka Emika robots are used. Depending on configuration it launches Gazebo simulation or connects to the real robot. Aside from unifying include interface of Franka Emika robot between simulation and hardware it also provides options to launch RViz2 and start Lineaf Feedback Controller. This launch file in a sense is equivalent to *Demo 01 LFC Alone*.
+**franka_common.launch.py** is meant to be included in demos where Franka Emika robots are used. Depending on configuration it launches Gazebo simulation or connects to the real robot. Aside from unifying include interface of Franka Emika robot between simulation and hardware it also provides options to launch RViz2 and configure verbosity of the simulation.
 
-Launch arguments:
+Launch arguments specific to this launch file:
 - `franka_controllers_params`: Path to the yaml file use to define controller parameters.
 
     **default**: *agimus_demos_common/config/franka_controllers.yaml*
 
-- `linear_feedback_controller_params`: Path to the yaml file use to define Linear Feedback Controller\`s and Joint State Estimator\`s params.
-
-    **default**: *agimus_demos_common/config/linear_feedback_controller_params.yaml*
-
 - `rviz_config_path`: Path to RViz configuration file
 
     **default**: *agimus_demos_common/rviz/franka_preview.rviz*
+
+Launch arguments expected to be public interface of all demos using Franka robots:
 
 - `robot_ip`: Hostname or IP address of the robot. If not empty launch file is configured for real robot. If empty **use_gazebo** is expected to be set to *true*.
 
@@ -54,6 +55,15 @@ Launch arguments:
     **Valid choices**: [*true*, *false*]
 
     **default**: *false*
+
+**franka_common_lfc.launch.py** extends **franka_common.launch.py** by launching Linear Feedback Controller and Joint State Estimator on top of it. This launch file in a sense is equivalent to *Demo 01 LFC Alone*.
+
+Launch arguments are the same as in **franka_common.launch.py**, and are extended by:
+
+- `linear_feedback_controller_params`: Path to the yaml file use to define Linear Feedback Controller\`s and Joint State Estimator\`s params.
+
+    **default**: *agimus_demos_common/config/linear_feedback_controller_params.yaml*
+
 
 ## Utils
 

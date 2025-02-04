@@ -12,7 +12,7 @@ from agimus_demos_common.launch_utils import (
 def launch_setup(
     context: LaunchContext, *args, **kwargs
 ) -> list[LaunchDescriptionEntity]:
-    return [generate_include_franka_launch()]
+    return [generate_include_franka_launch("franka_common_lfc.launch.py")]
 
 
 def generate_launch_description():
