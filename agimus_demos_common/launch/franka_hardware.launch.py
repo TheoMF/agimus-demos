@@ -14,7 +14,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import OnProcessExit
 
 from controller_manager.launch_utils import (
-    generate_controllers_spawner_launch_description,
+    generate_load_controller_launch_description,
 )
 
 
@@ -44,24 +44,8 @@ def launch_setup(
         on_exit=Shutdown(),
     )
 
-    set_robot_description_node = Node(
-        package="agimus_demos_common",
-        executable="set_robot_description_node",
-        name="set_robot_description_node",
-        parameters=[
-            {
-                "nodes_to_set": [
-                    "/controller_manager",
-                ],
-            }
-        ],
-    )
-
-    spawn_default_controllers = generate_controllers_spawner_launch_description(
-        [
-            "joint_state_broadcaster",
-            "franka_robot_state_broadcaster",
-        ]
+    spawn_default_controller = generate_load_controller_launch_description(
+        "joint_state_broadcaster"
     )
 
     franka_gripper_launch = IncludeLaunchDescription(
@@ -85,13 +69,7 @@ def launch_setup(
     return [
         controller_manager_node,
         franka_gripper_launch,
-        set_robot_description_node,
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=set_robot_description_node,
-                on_exit=[spawn_default_controllers],
-            )
-        ),
+        spawn_default_controller,
     ]
 
 
