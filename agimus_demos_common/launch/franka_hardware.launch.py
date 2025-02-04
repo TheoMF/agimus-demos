@@ -33,7 +33,10 @@ def launch_setup(
             {"arm_id": arm_id},
             {"load_gripper": "true"},
         ],
-        remappings=[("joint_states", "franka/joint_states")],
+        remappings=[
+            ("joint_states", "franka/joint_states"),
+            ("/controller_manager/robot_description", "/robot_description"),
+        ],
         output={
             "stdout": "screen",
             "stderr": "screen",
@@ -48,7 +51,7 @@ def launch_setup(
         parameters=[
             {
                 "nodes_to_set": [
-                    "/gz_ros2_control",
+                    "/controller_manager",
                 ],
             }
         ],

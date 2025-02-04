@@ -104,7 +104,6 @@ class SetRobotDescriptionNode(Node):
 
     def _set_params_timer_cb(self) -> None:
         available_nodes = self.get_node_names()
-        self.get_logger().warn(f"{available_nodes}")
         successfully_removed = []
         for node_name, client in self._set_param_clients.items():
             if node_name not in available_nodes:
