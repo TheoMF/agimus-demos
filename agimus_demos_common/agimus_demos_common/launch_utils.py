@@ -1,10 +1,7 @@
-from launch import LaunchContext, LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
-from launch_ros.actions import SetUseSimTime
-from launch.conditions import IfCondition
 
 
 def generate_default_franka_args() -> list[DeclareLaunchArgument]:
@@ -46,13 +43,13 @@ def generate_default_franka_args() -> list[DeclareLaunchArgument]:
         DeclareLaunchArgument(
             "gz_verbose",
             default_value="false",
-            description="Wether to set verbosity level of Gazebo to 3.",
+            description="Whether to set verbosity level of Gazebo to 3.",
             choices=["true", "false"],
         ),
         DeclareLaunchArgument(
             "gz_headless",
             default_value="false",
-            description="Wether to launch Gazebo in headless mode "
+            description="Whether to launch Gazebo in headless mode "
             + "(no GUI is launched, only physics server).",
             choices=["true", "false"],
         ),

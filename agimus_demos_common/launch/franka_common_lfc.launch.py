@@ -1,32 +1,25 @@
 from launch import LaunchContext, LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    OpaqueFunction,
     IncludeLaunchDescription,
+    OpaqueFunction,
     RegisterEventHandler,
 )
-from launch.conditions import IfCondition, UnlessCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_entity import LaunchDescriptionEntity
-from launch_ros.actions import Node, SetUseSimTime
-from launch_ros.substitutions import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterValue
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
-    Command,
-    FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-from launch.event_handlers import OnProcessExit
+from launch_ros.substitutions import FindPackageShare
 
 from controller_manager.launch_utils import (
-    generate_load_controller_launch_description,
+    generate_load_controller_launch_description,  # noqa: I001
 )
-
 
 from agimus_demos_common.launch_utils import (
     generate_default_franka_args,
-    get_use_sime_time,
 )
 
 

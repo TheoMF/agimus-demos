@@ -1,13 +1,12 @@
 from launch import LaunchContext, LaunchDescription
 from launch.actions import OpaqueFunction
 from launch.launch_description_entity import LaunchDescriptionEntity
-from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
 from controller_manager.launch_utils import (
-    generate_load_controller_launch_description,
+    generate_load_controller_launch_description,  # noqa: I001
 )
-
 
 from agimus_demos_common.launch_utils import (
     generate_default_franka_args,

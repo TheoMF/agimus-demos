@@ -44,13 +44,13 @@ Launch arguments expected to be public interface of all demos using Franka robot
 
     **default**: *false*
 
-- `gz_verbose`: Wether to set verbosity level of Gazebo to 3.
+- `gz_verbose`: Whether to set verbosity level of Gazebo to 3.
 
     **Valid choices**: [*true*, *false*]
 
     **default**: *false*
 
-- `gz_headless`: Wether to launch Gazebo in headless mode (no GUI is launched, only physics server).
+- `gz_headless`: Whether to launch Gazebo in headless mode (no GUI is launched, only physics server).
 
     **Valid choices**: [*true*, *false*]
 
@@ -68,7 +68,7 @@ Launch arguments are the same as in **franka_common.launch.py**, and are extende
 ## Utils
 
 > [!WARNING]
-> All ROS nodes launched within Agimus Demos are expected to configure themselves to expect parameter **use_sim_time**. There exist function `get_use_sime_time()` in utils that simplifies this process. Look at example below fo usage.
+> All ROS nodes launched within Agimus Demos are expected to configure themselves to expect parameter **use_sim_time**. There exist function `get_use_sime_time()` in utils that simplifies this process. Look at example below for usage.
 
 This package provides utility functions to ease up creation of new launch files. Simple example launch file can look as follows:
 
@@ -128,7 +128,7 @@ Function `generate_default_franka_args()` ensures all launch arguments used by `
 
 Function `generate_default_franka_args()` is directly used by `franka_common.launch.py`, so all arguments exposed by it are described in the documentation above.
 
-Function `get_use_sime_time()` return dictionary with parameter **use_sim_time**, which value is set automatically wether simulation is launch or real robot is running.
+Function `get_use_sime_time()` return dictionary with parameter **use_sim_time**, which value is set automatically whether simulation is launch or real robot is running.
 
 ## Nodes
 

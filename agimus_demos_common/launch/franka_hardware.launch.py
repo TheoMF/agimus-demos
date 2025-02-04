@@ -4,17 +4,15 @@ from launch.actions import (
     IncludeLaunchDescription,
     OpaqueFunction,
     Shutdown,
-    RegisterEventHandler,
 )
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch.event_handlers import OnProcessExit
 
 from controller_manager.launch_utils import (
-    generate_load_controller_launch_description,
+    generate_load_controller_launch_description,  # noqa: I001
 )
 
 
