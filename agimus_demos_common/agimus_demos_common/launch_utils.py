@@ -3,7 +3,8 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
-from launch_ros.actions import Node
+from launch_ros.actions import SetUseSimTime
+from launch.conditions import IfCondition
 
 
 def generate_default_franka_args() -> list[DeclareLaunchArgument]:
@@ -97,3 +98,13 @@ def generate_include_franka_launch(launch_file_name: str) -> IncludeLaunchDescri
             "gz_headless": LaunchConfiguration("gz_headless"),
         }.items(),
     )
+
+
+def get_use_sime_time() -> dict[str, LaunchConfiguration]:
+    """Helper function creating action setting param `use_sim_time`.
+
+    Returns:
+        dict[str, LaunchConfiguration]: Dict mapping value of
+        `use_gazebo` launch argument to `use_sim_time` param.
+    """
+    return {"use_sim_time": LaunchConfiguration("use_gazebo")}

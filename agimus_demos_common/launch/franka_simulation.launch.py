@@ -8,7 +8,7 @@ from launch.actions import (
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
@@ -53,10 +53,30 @@ def launch_setup(
         }.items(),
     )
 
+    ros_gz_bridge_node = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        parameters=[
+            {
+                "expand_gz_topic_names": True,
+                "use_sim_time": True,
+                "config_file": PathJoinSubstitution(
+                    [
+                        FindPackageShare("agimus_demos_common"),
+                        "config",
+                        "gz_bridge.yaml",
+                    ]
+                ),
+            }
+        ],
+        output="screen",
+    )
+
     robot_spawner_node = Node(
         package="ros_gz_sim",
         executable="create",
         arguments=["-topic", "/robot_description"],
+        parameters=[{"use_sim_time": True}],
         output="screen",
     )
 
@@ -69,6 +89,7 @@ def launch_setup(
 
     return [
         gazebo_empty_world,
+        ros_gz_bridge_node,
         robot_spawner_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(

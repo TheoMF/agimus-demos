@@ -67,20 +67,23 @@ Launch arguments are the same as in **franka_common.launch.py**, and are extende
 
 ## Utils
 
+> [!WARNING]
+> All ROS nodes launched within Agimus Demos are expected to configure themselves to expect parameter **use_sim_time**. There exist function `get_use_sime_time()` in utils that simplifies this process. Look at example below fo usage.
+
 This package provides utility functions to ease up creation of new launch files. Simple example launch file can look as follows:
 
 ```python
 from agimus_demos_common.launch_utils import (
-    generate_initial_hardware_checks,
     generate_default_franka_args,
     generate_include_franka_launch,
+    get_use_sime_time,
 )
 
 
 def launch_setup(
     context: LaunchContext, *args, **kwargs
 ) -> list[LaunchDescriptionEntity]:
-    # Helper function that includes `franka_common_lfc.launch.py`
+    # Helper function that includes `franka_common_lfc.launch.py`.
     franka_robot_launch = generate_include_franka_launch("franka_common_lfc.launch.py")
 
     # Utility ROS node, delaying stat of other nodes until
@@ -89,12 +92,16 @@ def launch_setup(
     wait_for_non_zero_joints_node = Node(
         package="agimus_demos_common",
         executable="wait_for_non_zero_joints_node",
+        # Set `use_sim_time` based on `use_gazebo` launch argument.
+        parameters=[get_use_sime_time()],
         output="screen",
     )
 
     my_awesome_node = Node(
         package="my_awesome_package",
         executable="my_awesome_node",
+        parameters=[get_use_sime_time()],
+        output="screen",
     )
 
     return [
@@ -111,7 +118,7 @@ def launch_setup(
 
 def generate_launch_description():
     return LaunchDescription(
-        # Helper function creates launch arguments required by `franka_common.launch.py`
+        # Helper function creates launch arguments required by `franka_common.launch.py`.
         generate_default_franka_args()
         + [OpaqueFunction(function=launch_setup)]
     )
@@ -120,6 +127,8 @@ def generate_launch_description():
 Function `generate_default_franka_args()` ensures all launch arguments used by `franka_common.launch.py` are exposed by launch file, while `generate_include_franka_launch()` includes that file and uses those declared parameters.
 
 Function `generate_default_franka_args()` is directly used by `franka_common.launch.py`, so all arguments exposed by it are described in the documentation above.
+
+Function `get_use_sime_time()` return dictionary with parameter **use_sim_time**, which value is set automatically wether simulation is launch or real robot is running.
 
 ## Nodes
 

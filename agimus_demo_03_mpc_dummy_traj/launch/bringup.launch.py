@@ -1,5 +1,5 @@
 from launch import LaunchContext, LaunchDescription
-from launch.actions import OpaqueFunction, RegisterEventHandler
+from launch.actions import OpaqueFunction, RegisterEventHandler, GroupAction
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution
@@ -10,6 +10,7 @@ from launch.event_handlers import OnProcessExit
 from agimus_demos_common.launch_utils import (
     generate_default_franka_args,
     generate_include_franka_launch,
+    get_use_sime_time,
 )
 
 
@@ -29,21 +30,21 @@ def launch_setup(
     wait_for_non_zero_joints_node = Node(
         package="agimus_demos_common",
         executable="wait_for_non_zero_joints_node",
+        parameters=[get_use_sime_time()],
         output="screen",
     )
 
     agimus_controller_node = Node(
         package="agimus_controller_ros",
         executable="agimus_controller_node",
-        name="agimus_controller_node",
+        parameters=[get_use_sime_time(), agimus_controller_yaml],
         output="screen",
-        parameters=[agimus_controller_yaml],
     )
 
     simple_trajectory_publisher_node = Node(
         package="agimus_controller_ros",
         executable="simple_trajectory_publisher",
-        name="simple_trajectory_publisher",
+        parameters=[get_use_sime_time()],
         output="screen",
     )
 

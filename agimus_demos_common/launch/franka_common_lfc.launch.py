@@ -8,7 +8,7 @@ from launch.actions import (
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.launch_description_entity import LaunchDescriptionEntity
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import (
@@ -26,6 +26,7 @@ from controller_manager.launch_utils import (
 
 from agimus_demos_common.launch_utils import (
     generate_default_franka_args,
+    get_use_sime_time,
 )
 
 
