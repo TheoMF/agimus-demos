@@ -49,7 +49,9 @@ def generate_default_franka_args() -> list[DeclareLaunchArgument]:
     ]
 
 
-def generate_include_franka_launch() -> IncludeLaunchDescription:
+def generate_include_franka_launch(
+    launch_file_name: str = "franka_common_lfc.launch.py",
+) -> IncludeLaunchDescription:
     return IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -57,7 +59,7 @@ def generate_include_franka_launch() -> IncludeLaunchDescription:
                     [
                         FindPackageShare("agimus_demos_common"),
                         "launch",
-                        "franka_common.launch.py",
+                        launch_file_name,
                     ]
                 )
             ]

@@ -7,7 +7,7 @@
     Common launch and config files used across all demos created for Agimus Project.
   </description>
   <maintainer email="guilhem.saurel@laas.fr">Guilhem Saurel</maintainer>
-  <author email="mederic.fourmy@cvut.cz ">Mederic Fourmy</author>
+  <author email="mederic.fourmy@cvut.cz">Mederic Fourmy</author>
   <author email="krzysztof.wojciechowski@laas.fr">Krzysztof Wojciechowski</author>
 
   <license>BSD-2</license>
