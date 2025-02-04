@@ -4,12 +4,14 @@ from launch.actions import (
     IncludeLaunchDescription,
     OpaqueFunction,
     Shutdown,
+    RegisterEventHandler,
 )
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.event_handlers import OnProcessExit
 
 from controller_manager.launch_utils import (
     generate_controllers_spawner_launch_description,
@@ -39,6 +41,19 @@ def launch_setup(
         on_exit=Shutdown(),
     )
 
+    set_robot_description_node = Node(
+        package="agimus_demos_common",
+        executable="set_robot_description_node",
+        name="set_robot_description_node",
+        parameters=[
+            {
+                "nodes_to_set": [
+                    "/gz_ros2_control",
+                ],
+            }
+        ],
+    )
+
     spawn_default_controllers = generate_controllers_spawner_launch_description(
         [
             "joint_state_broadcaster",
@@ -66,8 +81,14 @@ def launch_setup(
 
     return [
         controller_manager_node,
-        spawn_default_controllers,
         franka_gripper_launch,
+        set_robot_description_node,
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=set_robot_description_node,
+                on_exit=[spawn_default_controllers],
+            )
+        ),
     ]
 
 
