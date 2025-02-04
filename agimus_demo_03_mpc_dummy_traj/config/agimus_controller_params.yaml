@@ -2,6 +2,9 @@ agimus_controller_node:
   ros__parameters:
     ocp:
       dt: 0.01
+      dt_factor_n_seq:
+        factors: [1]
+        dts: [19]
       horizon_size: 20
       armature: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
       gripper_weight: 500.0
@@ -28,5 +31,4 @@ agimus_controller_node:
       ]
     save_predictions_and_refs: True
     rate: 100.0
-    package_name: "agimus_demo_03_mpc_dummy_traj"
-    path_to_yaml: "config/mpc_params.yaml"
+    collision_pairs: ["fer_link7_capsule_0 obstacle1_capsule_0"]

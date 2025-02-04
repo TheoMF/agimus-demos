@@ -18,7 +18,7 @@ source install/setup.bash
 ## Start the demo in simulation using the Panda robot.
 ```bash
 cd workspace
-reset && source install/setup.bash && ros2 launch agimus_demo_03_mpc_dummy_traj bringup.launch.py
+reset && source ~/ros2_ws/install/setup.bash && ros2 launch agimus_demo_03_mpc_dummy_traj bringup.launch.py use_gazebo:=true
 ```
 
 ## Start the demo on hardware using the Panda robot.

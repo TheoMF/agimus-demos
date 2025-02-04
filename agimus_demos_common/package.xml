@@ -3,11 +3,9 @@
 <package format="3">
   <name>agimus_demos_common</name>
   <version>0.0.0</version>
-  <description>
-    Common launch and config files used across all demos created for Agimus Project.
-  </description>
+  <description> Common launch and config files used across all demos created for Agimus Project. </description>
   <maintainer email="guilhem.saurel@laas.fr">Guilhem Saurel</maintainer>
-  <author email="mederic.fourmy@cvut.cz ">Mederic Fourmy</author>
+  <author email="mederic.fourmy@cvut.cz">Mederic Fourmy</author>
   <author email="krzysztof.wojciechowski@laas.fr">Krzysztof Wojciechowski</author>
 
   <license>BSD-2</license>

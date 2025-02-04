@@ -1,3 +1,6 @@
+from pathlib import Path
+from ament_index_python.packages import get_package_share_directory
+
 from launch import LaunchContext, LaunchDescription
 from launch.actions import OpaqueFunction
 from launch.launch_description_entity import LaunchDescriptionEntity
@@ -15,11 +18,12 @@ from agimus_demos_common.launch_utils import (
 def launch_setup(
     context: LaunchContext, *args, **kwargs
 ) -> list[LaunchDescriptionEntity]:
+    package_name = "agimus_demo_03_mpc_dummy_traj"
     franka_robot_launch = generate_include_franka_launch()
 
     agimus_controller_yaml = PathJoinSubstitution(
         [
-            FindPackageShare("agimus_demo_03_mpc_dummy_traj"),
+            FindPackageShare(package_name),
             "config",
             "mpc_controller_params.yaml",
         ]
@@ -40,10 +44,22 @@ def launch_setup(
         output="screen",
     )
 
+    xacro_path = (
+        Path(get_package_share_directory(package_name)) / "urdf" / "obstacles.xacro"
+    )
+    environment = Node(
+        package="agimus_controller_ros",
+        executable="environment_publisher",
+        name="environment_publisher",
+        output="screen",
+        parameters=[{"environment_path": str(xacro_path)}],
+    )
+
     return [
         franka_robot_launch,
         agimus_controller_node,
         simple_trajectory_publisher_node,
+        environment,
     ]
 
 
