@@ -29,10 +29,12 @@ def launch_setup(
         ),
     )
 
-    load_joint_impedance_example_controller = generate_load_controller_launch_description(
-        controller_name="joint_impedance_example_controller",
-        controller_params_file=joint_impedance_controller_params,
-        extra_spawner_args=["--controller-manager-timeout", "1000"],
+    load_joint_impedance_example_controller = (
+        generate_load_controller_launch_description(
+            controller_name="joint_impedance_example_controller",
+            controller_params_file=joint_impedance_controller_params,
+            extra_spawner_args=["--controller-manager-timeout", "1000"],
+        )
     )
 
     return [
