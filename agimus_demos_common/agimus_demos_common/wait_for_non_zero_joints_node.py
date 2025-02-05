@@ -10,7 +10,7 @@ from rclpy.qos_overriding_options import QoSOverridingOptions
 from sensor_msgs.msg import JointState  # noqa: I001
 
 
-class WaitForNonZeoJoints(Node):
+class WaitForNonZeroJoints(Node):
     """Main class implementing ROS node redirecting /robot_description topic
     to parameter of a node."""
 
