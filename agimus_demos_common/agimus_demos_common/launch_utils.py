@@ -62,8 +62,8 @@ def generate_include_franka_launch(launch_file_name: str) -> IncludeLaunchDescri
         by the launch file. Assumes argument are declared with function `generate_default_franka_args()`.
 
     Args:
-        launch_file_name (str, optional): Name of the python launch file to included
-            from directory agimus_demos_common/launch. Defaults to "franka_common_lfc.launch.py".
+        launch_file_name (str): Name of the python launch file to included
+            from directory `agimus_demos_common/launch`.
 
     Returns:
         IncludeLaunchDescription: Include launch description with all default parameters passed to it.
