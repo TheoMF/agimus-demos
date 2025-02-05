@@ -19,12 +19,12 @@ def launch_setup(
 ) -> list[LaunchDescriptionEntity]:
     franka_robot_launch = generate_include_franka_launch("franka_common.launch.py")
 
-    joint_impedance_controller_params = (
+    joint_impedance_example_controller_params = (
         PathJoinSubstitution(
             [
                 FindPackageShare("agimus_demo_00_franka_controller"),
                 "config",
-                "joint_impedance_controller_params.yaml",
+                "joint_impedance_example_controller_params.yaml",
             ]
         ),
     )
@@ -32,7 +32,7 @@ def launch_setup(
     load_joint_impedance_example_controller = (
         generate_load_controller_launch_description(
             controller_name="joint_impedance_example_controller",
-            controller_params_file=joint_impedance_controller_params,
+            controller_params_file=joint_impedance_example_controller_params,
             extra_spawner_args=["--controller-manager-timeout", "1000"],
         )
     )
