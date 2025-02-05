@@ -7,54 +7,73 @@ This package intends to be used as a common source of basic launch files allowin
 > [!NOTE]
 > All launch files specific to robot are expected to share common set of launch arguments. For Franka robots this common set of arguments should be generated with function `generate_default_franka_args()` found in [launch_utils.py](agimus_demos_common/launch_utils.py). Description of those arguments can be found below.
 
+> [!WARNING]
+> All ROS nodes launched within Agimus Demos are expected to configure themselves to expect parameter **use_sim_time**. There exist function `get_use_sime_time()` in utils that simplifies this process. Look at example below for usage.
+
 ## Launch files
 
 **franka_common.launch.py** is meant to be included in demos where Franka Emika robots are used. Depending on configuration it launches Gazebo simulation or connects to the real robot. Aside from unifying include interface of Franka Emika robot between simulation and hardware it also provides options to launch RViz2 and configure verbosity of the simulation.
 
 Launch arguments specific to this launch file:
-- `franka_controllers_params`: Path to the yaml file use to define controller parameters.
+- **franka_controllers_params**:
 
-    **default**: *agimus_demos_common/config/franka_controllers.yaml*
+    Default: *agimus_demos_common/config/franka_controllers.yaml*
 
-- `rviz_config_path`: Path to RViz configuration file
+    Path to the yaml file use to define controller parameters.
 
-    **default**: *agimus_demos_common/rviz/franka_preview.rviz*
+- **rviz_config_path**:
+
+    Default: *agimus_demos_common/rviz/franka_preview.rviz*
+
+    Path to RViz configuration file
 
 Launch arguments expected to be public interface of all demos using Franka robots:
 
-- `robot_ip`: Hostname or IP address of the robot. If not empty launch file is configured for real robot. If empty **use_gazebo** is expected to be set to *true*.
+- **robot_ip**:
 
-    **default**: *""*
+    Default: *""*
 
-- `arm_id`: ID of the type of arm used. Supported values: fer, fr3, fp3.
+    Hostname or IP address of the robot. If not empty launch file is configured for real robot. If empty **use_gazebo** is expected to be set to *true*.
+
+- **arm_id**:
 
     Valid choices: [*fer*, *fr3*, *fp3*]
 
-    **default**: *fer*
+    Default: *fer*
 
-- `use_gazebo`: Configures launch file for Gazebo simulation. If set to *true* launch file is configured for simulated robot. If set to *false* argument `robot_ip` is expected not to be empty.
+    ID of the type of arm used. Supported values: fer, fr3, fp3.
 
-    **Valid choices**: [*true*, *false*]
+- **use_gazebo**:
 
-    **default**: *false*
+    Valid choices: [*true*, *false*]
 
-- `use_rviz`: Visualize the robot in RViz.
+    Default: *false*
 
-    **Valid choices**: [*true*, *false*]
+    Configures launch file for Gazebo simulation. If set to *true* launch file is configured for simulated robot. If set to *false* argument **robot_ip** is expected not to be empty.
 
-    **default**: *false*
+- **use_rviz**:
 
-- `gz_verbose`: Whether to set verbosity level of Gazebo to 3.
+    Valid choices: [*true*, *false*]
 
-    **Valid choices**: [*true*, *false*]
+    Default: *false*
 
-    **default**: *false*
+    Visualize the robot in RViz.
 
-- `gz_headless`: Whether to launch Gazebo in headless mode (no GUI is launched, only physics server).
+- **gz_verbose**:
 
-    **Valid choices**: [*true*, *false*]
+    Valid choices: [*true*, *false*]
 
-    **default**: *false*
+    Default: *false*
+
+    Whether to set verbosity level of Gazebo to 3.
+
+- **gz_headless**:
+
+    Valid choices: [*true*, *false*]
+
+    Default: *false*
+
+    Whether to launch Gazebo in headless mode (no GUI is launched, only physics server).
 
 **franka_common_lfc.launch.py** extends **franka_common.launch.py** by launching Linear Feedback Controller and Joint State Estimator on top of it. This launch file in a sense is equivalent to *Demo 01 LFC Alone*.
 
@@ -62,13 +81,10 @@ Launch arguments are the same as in **franka_common.launch.py**, and are extende
 
 - `linear_feedback_controller_params`: Path to the yaml file use to define Linear Feedback Controller\`s and Joint State Estimator\`s params.
 
-    **default**: *agimus_demos_common/config/linear_feedback_controller_params.yaml*
+    Default: *agimus_demos_common/config/linear_feedback_controller_params.yaml*
 
 
 ## Utils
-
-> [!WARNING]
-> All ROS nodes launched within Agimus Demos are expected to configure themselves to expect parameter **use_sim_time**. There exist function `get_use_sime_time()` in utils that simplifies this process. Look at example below for usage.
 
 This package provides utility functions to ease up creation of new launch files. Simple example launch file can look as follows:
 
