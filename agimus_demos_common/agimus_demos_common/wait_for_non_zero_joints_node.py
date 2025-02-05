@@ -97,7 +97,7 @@ class WaitForNonZeroJoints(Node):
 def main(args=None):
     rclpy.init(args=args)
     ret = 1
-    wait_for_non_zero_joints_node = WaitForNonZeoJoints()
+    wait_for_non_zero_joints_node = WaitForNonZeroJoints()
     try:
         rclpy.spin(wait_for_non_zero_joints_node)
     except SystemExit:
