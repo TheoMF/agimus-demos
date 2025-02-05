@@ -39,7 +39,7 @@ def launch_setup(
 
     return [
         franka_robot_launch,
-        load_linear_feedback_controller,
+        load_joint_impedance_example_controller,
     ]
 
 
