@@ -40,13 +40,13 @@ def launch_setup(
     if robot_ip_empty and not use_gazebo_bool:
         raise RuntimeError(
             "Incorrect launch configuration! Set `robot_ip` to configure hardware or "
-            "`gazebo:=true` to configure simulation."
+            "`use_gazebo:=true` to configure simulation."
         )
 
     if not robot_ip_empty and use_gazebo_bool:
         raise RuntimeError(
             "Incorrect launch configuration! Can not launch demo with both "
-            "`gazebo:=true` and non-empty `robot_ip`."
+            "`use_gazebo:=true` and non-empty `robot_ip`."
         )
 
     franka_hardware_launch = IncludeLaunchDescription(
