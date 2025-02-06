@@ -45,6 +45,7 @@ repos:
     args: [--write-changes, --check-filenames]
     additional_dependencies:
     - tomli
+    exclude: deprecated/*
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
   rev: 0.2.3
   hooks:
