@@ -3,32 +3,25 @@ agimus_controller_node:
     ocp:
       dt: 0.01
       dt_factor_n_seq:
-        factors: [1]
-        dts: [19]
-      horizon_size: 20
+        factors: [1, 2, 4]
+        dts: [10, 10, 9]
+      horizon_size: 30
       armature: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
       gripper_weight: 500.0
       state_weight: 5.0
       control_weight: 0.001
       max_qp_iter: 100
       max_iter: 10
-      use_constraints: True
       activate_callback: False
-      increasing_weights:
-        max: 100.0
-        percent: 0.9
-        time_reach_percent: 6
-      effector_frame_name: "fer_link8"
-    moving_joint_names:
-      [
-        "fer_joint1",
-        "fer_joint2",
-        "fer_joint3",
-        "fer_joint4",
-        "fer_joint5",
-        "fer_joint6",
-        "fer_joint7",
-      ]
-    save_predictions_and_refs: True
+      nb_threads: 6
+      collision_safety_margin: 0.02
+      activation_distance_threshold: 0.04
+    publish_debug_data: True
     rate: 100.0
-    collision_pairs: ["fer_link7_capsule_0 obstacle1_capsule_0"]
+    free_flyer: False
+    collision_as_capsule: True
+    self_collision: False
+    collision_pairs_names: ["cp_1"]
+    cp_1:
+      first: "fer_link7_sc_capsule_0"
+      second: "obstacle1_capsule_0"

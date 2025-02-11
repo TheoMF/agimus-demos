@@ -11,6 +11,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from ament_index_python.packages import get_package_share_directory
+from pathlib import Path
 
 from controller_manager.launch_utils import (
     generate_controllers_spawner_launch_description,
@@ -34,7 +36,8 @@ def launch_setup(
             ]
         )
     )
-
+    package_name = "agimus_demo_03_mpc_dummy_traj"
+    sdf_path = Path(get_package_share_directory(package_name)) / "urdf" / "test.sdf"
     gazebo_empty_world = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(

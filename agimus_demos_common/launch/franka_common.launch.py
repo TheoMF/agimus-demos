@@ -4,6 +4,7 @@ from launch.actions import (
     OpaqueFunction,
     IncludeLaunchDescription,
     RegisterEventHandler,
+    ExecuteProcess,
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -19,6 +20,7 @@ from launch.substitutions import (
 )
 from launch.event_handlers import OnProcessExit
 
+from pathlib import Path
 from controller_manager.launch_utils import (
     generate_load_controller_launch_description,
 )
@@ -120,10 +122,47 @@ def launch_setup(
         "gazebo": use_gazebo,
         "ee_id": "franka_hand",
         "gazebo_effort": "true",
+        "with_sc": "false",
         "franka_controllers_params": franka_controllers_params,
     }
-
+    package_name = "agimus_demo_03_mpc_dummy_traj"
     robot_description = ParameterValue(
+        Command(
+            [
+                PathJoinSubstitution([FindExecutable(name="xacro")]),
+                " ",
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("franka_description"),
+                        "robots",
+                        arm_id_str,
+                        f"{arm_id_str}.urdf.xacro",
+                        # FindPackageShare(package_name),
+                        # "urdf",
+                        # "demo2.urdf.xacro",
+                    ]
+                ),
+                # Convert dict to list of parameters
+                *[arg for key, val in xacro_args.items() for arg in (f" {key}:=", val)],
+            ]
+        ),
+        value_type=str,
+    )
+
+    xacro_collision_args = {
+        "robot_ip": robot_ip,
+        "arm_id": arm_id,
+        "ros2_control": "true",
+        "hand": "true",
+        "use_fake_hardware": "false",
+        "fake_sensor_commands": "false",
+        "gazebo": "false",
+        "ee_id": "franka_hand",
+        "gazebo_effort": "true",
+        "with_sc": "true",
+        "franka_controllers_params": franka_controllers_params,
+    }
+    robot_collision_description = ParameterValue(
         Command(
             [
                 PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -137,7 +176,11 @@ def launch_setup(
                     ]
                 ),
                 # Convert dict to list of parameters
-                *[arg for key, val in xacro_args.items() for arg in (f" {key}:=", val)],
+                *[
+                    arg
+                    for key, val in xacro_collision_args.items()
+                    for arg in (f" {key}:=", val)
+                ],
             ]
         ),
         value_type=str,
@@ -149,6 +192,15 @@ def launch_setup(
         name="robot_state_publisher",
         output="screen",
         parameters=[{"robot_description": robot_description}],
+    )
+
+    robot_collision_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_collision_publisher",
+        output="screen",
+        remappings=[("robot_description", "robot_description_with_collision")],
+        parameters=[{"robot_description": robot_collision_description}],
     )
 
     joint_state_publisher_node = Node(
@@ -174,6 +226,26 @@ def launch_setup(
         condition=IfCondition(use_rviz),
     )
 
+    folder_idx = 0
+    folder_path = Path(f"/tmp/rosbag_mpc_data_{folder_idx}")
+    while folder_path.exists():
+        folder_idx += 1
+        folder_path = Path(f"/tmp/rosbag_mpc_data_{folder_idx}")
+    rosbag_recorder = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "bag",
+            "record",
+            "-o",
+            str(folder_path),
+            "mpc_debug",
+            "mpc_input",
+            "ocp_solve_time",
+            "ocp_x0",
+        ],
+        output="screen",
+    )
+
     return [
         franka_hardware_launch,
         franka_simulation_launch,
@@ -184,7 +256,14 @@ def launch_setup(
                 on_exit=[load_joint_state_estimator],
             )
         ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=load_linear_feedback_controller.entities[-1],
+                on_exit=[rosbag_recorder],
+            )
+        ),
         robot_state_publisher_node,
+        robot_collision_publisher_node,
         joint_state_publisher_node,
         rviz_node,
     ]
