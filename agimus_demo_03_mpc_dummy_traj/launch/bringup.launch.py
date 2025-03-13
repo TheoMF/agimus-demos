@@ -1,6 +1,10 @@
 from launch import LaunchContext, LaunchDescription
-from launch.actions import OpaqueFunction, RegisterEventHandler, TimerAction
-from launch.actions import OpaqueFunction, RegisterEventHandler, DeclareLaunchArgument
+from launch.actions import (
+    OpaqueFunction,
+    RegisterEventHandler,
+    TimerAction,
+    DeclareLaunchArgument,
+)
 from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
@@ -25,7 +29,8 @@ def launch_setup(
     franka_robot_launch = generate_include_franka_launch("franka_common_lfc.launch.py")
     ocp_choice_arg = LaunchConfiguration("ocp")
     use_collision_detection = (
-        context.perform_substitution(ocp_choice_arg).lower() == "custom_with_collision_avoidance"
+        context.perform_substitution(ocp_choice_arg).lower()
+        == "custom_with_collision_avoidance"
     )
 
     agimus_controller_yaml = PathJoinSubstitution(
