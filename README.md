@@ -15,7 +15,7 @@ For the real robot use
 ros2 launch agimus_demo_<demo-name> bringup.launch.py robot_ip:=<robot-ip> use_rviz:=true
 ```
 
-## Running demos with Docker
+## Running Franka demos with Docker
 
 > [!NOTE]
 > This is a recommended installation for this package. You can always install it from source (see below), but to avoid issues with building from source we advise you to use prebuilt docker images, that contains all the dependencies.
@@ -33,7 +33,7 @@ git clone -b humble-devel https://gitlab.laas.fr/agimus-project/agimus_dev_conta
 # Open folder in VS Code
 code agimus_dev_container
 ```
-Then following the instruction from [README.md](https://gitlab.laas.fr/agimus-project/agimus_dev_container/-/blob/humble-devel/README.md?ref_type=heads) reopen the folder in Development Container. Once you are inside of the Development Container clone Adimus Demos.
+Then following the instruction from [README.md](https://gitlab.laas.fr/agimus-project/agimus_dev_container/-/blob/humble-devel/README.md?ref_type=heads) reopen the folder in Development Container. Once you are inside of the Development Container clone Agimus Demos.
 
 ```bash
 git clone https://github.com/agimus-project/agimus-demos.git ~/ros2_ws/src/agimus-demos
@@ -47,6 +47,55 @@ source install/setup.bash
 ```
 
 Now you are ready to run all of your demos!
+
+## Running Tiago-Pro demos with Docker
+
+Docker image is provided in a form of Development Container and can be found at [agimus-project/agimus_dev_container](https://gitlab.laas.fr/agimus-project/agimus_dev_container). Use branch `alum-devel` and refer to the README.md file for more information on how to use it.
+
+In alum one needs to build everything from scratch.
+THough a semi-automatic procedure is here to ease the process.
+
+1. First download the repository
+```bash
+git clone -b alum-devel https://gitlab.laas.fr/agimus-project/agimus_dev_container.git
+# Open folder in VS Code
+code agimus_dev_container
+```
+Then following the instruction from
+[README.md](https://gitlab.laas.fr/agimus-project/agimus_dev_container/-/blob/alum-devel/README.md?ref_type=heads)
+reopen the folder in Development Container.
+Once you are inside of the Development Container clone Agimus Demos.
+
+In order to run successfully some of the demos on Tiago-Pro here is what is needed.
+
+```bash
+# Ensure all dependencies are installed and up to date
+./setup.sh
+# Build your workspace
+./build.sh
+# Source the workspace
+source install/setup.bash
+```
+
+```bash
+git clone git@gitlab.laas.fr:agimus-project/agimus_dev_container.git -b alum-devel
+mkdir agimus_dev_container/src
+cd agimus_dev_container/src
+git clone --recursive https://github.com/agimus-project/agimus-demos
+vcs import --recursive src < src/agimus-demos/control.repos
+vcs import --recursive src < src/agimus-demos/tiago-pro.repos
+
+# Pinocchio has a hardcoded hpp-fcl as dependency while we expect Coal
+# Until it is fixed we need to change it manually
+sed -i 's/hpp-fcl/coal/g' src/vcs_control/pinocchio/package.xml
+
+# Install all dependencies that are available as binaries
+sudo apt update
+rosdep update
+rosdep install -y -i --from-paths src
+
+MAKEFLAGS="-j4" colcon build --cmake-args -DPYTHON_EXECUTABLE=/usr/bin/python3 -DCMAKE_BUILD_TYPE=Release -DPYTHON_SITELIB=lib/python3.10/site-packages -DCMAKE_INSTALL_LIBDIR=lib -DPYTHON_STANDARD_LAYOUT=OFF -DPYTHON_DEB_LAYOUT=OFF -DBUILD_TESTING=OFF -DBUILD_BENCHMARK=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_EXAMPLES=OFF -DINSTALL_DOCUMENTATION=OFF -DBUILD_PYTHON_INTERFACE=ON -DGENERATE_PYTHON_STUBS=OFF -DCOAL_BACKWARD_COMPATIBILITY_WITH_HPP_FCL=ON -DCOAL_HAS_QHULL=ON -DBUILD_WITH_COLLISION_SUPPORT=ON -DPROJECT_USE_QT4=OFF -DUSE_QPOASES=OFF -DBUILD_WITH_MULTITHREADS=ON -DBUILD_WITH_VECTORIZATION_SUPPORT=ON -Wno-dev
+```
 
 ## Building dependencies from source
 
