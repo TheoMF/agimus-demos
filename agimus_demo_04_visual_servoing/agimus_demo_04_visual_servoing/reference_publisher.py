@@ -1,8 +1,8 @@
 import numpy as np
 import pinocchio
 
-from geometry_msgs.msg import TransformStamped
-
+from geometry_msgs.msg import TransformStamped, PoseStamped
+from rclpy.qos import qos_profile_system_default
 import rclpy
 
 from tf2_ros import TransformException
@@ -23,7 +23,7 @@ from agimus_controller.trajectory import (
     WeightedTrajectoryPoint,
 )
 from agimus_controller_ros.simple_trajectory_publisher import TrajectoryPublisherBase
-
+from agimus_demo_05_pick_and_place.async_subscriber import AsyncSubscriber
 
 # Split SimpleTrajectoryPublisher so that the initialization is in base class while the handling of trajectory is in child class.
 # Implement a child class of the above base class that merely publishes a constant point.
@@ -42,33 +42,62 @@ class ReferencePublisher(TrajectoryPublisherBase):
         )
         self._dt = params[0].double_value
 
+        self.vision_client = AsyncSubscriber(
+            self,
+            PoseStamped,
+            "/object/detections",
+            qos_profile_system_default,
+        )
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.tf_static_broadcaster = StaticTransformBroadcaster(self)
 
         # This frame should be the same as the one used in agimus_controller
         # visual servoing residual
+        self.world_frame = "fer_link0"
+        self.end_effector_frame = "fer_hand_tcp"
         self.camera_frame = "camera_color_optical_frame"
-        self.object_frame = "current_object"
+        self.object_frame = "tless-obj_000031"
 
     def ready_callback(self):
         # Call on_timer function every second
         self.timer = self.create_timer(self._dt, self.initialize_transform)
 
+    def get_transform(self, parent_frame, child_frame, stamp):
+        try:
+            transform_msg = self.tf_buffer.lookup_transform(
+                parent_frame, child_frame, stamp
+            )
+            return transform_msg
+        except TransformException as ex:
+            self.get_logger().warn(
+                f"Could not transform {parent_frame} to {child_frame}: {ex}",
+                throttle_duration_sec=2.0,
+            )
+            return None
+
     def initialize_transform(self):
         # Timer callback for initialization
         # It waits until a transform in TF is found.
-        try:
-            cMo_msg = self.tf_buffer.lookup_transform(
-                self.camera_frame, self.object_frame, rclpy.time.Time()
-            )
-            self._cMo = transform_msg_to_se3(cMo_msg.transform)
-        except TransformException as ex:
-            self.get_logger().warn(
-                f"Could not transform {self.camera_frame} to {self.object_frame}: {ex}",
-                throttle_duration_sec=2.0,
-            )
+
+        cMo_msg = self.get_transform(
+            self.camera_frame, self.object_frame, rclpy.time.Time()
+        )
+        if cMo_msg is None:
             return
+        wMc_msg = self.get_transform(
+            self.world_frame, self.camera_frame, cMo_msg.header.stamp
+        )
+
+        wMee_msg = self.get_transform(
+            self.world_frame, self.end_effector_frame, cMo_msg.header.stamp
+        )
+        if wMc_msg is None or wMee_msg is None:
+            return
+        self._cMo = transform_msg_to_se3(cMo_msg.transform)
+        self._wMo = transform_msg_to_se3(wMc_msg.transform) * self._cMo
+        self._wMee = transform_msg_to_se3(wMee_msg.transform)
+        self._oMee = self._wMo.inverse() * self._wMee
 
         # Send the reference used by vision to TF so that it can be visualized in RViz.
         # This transform isn't used by agimus_controller_node.
@@ -99,7 +128,7 @@ class ReferencePublisher(TrajectoryPublisherBase):
                 robot_velocity=v,
                 robot_acceleration=a,
                 robot_effort=tau,
-                end_effector_poses={self.camera_frame + "_vs": self._cMo.inverse()},
+                end_effector_poses={self.camera_frame + "_vs": self._oMee.inverse()},
             ),
             weights=TrajectoryPointWeights(
                 w_robot_configuration=w_q,
@@ -118,6 +147,25 @@ class ReferencePublisher(TrajectoryPublisherBase):
         self.timer = self.create_timer(self._dt, self.publish_reference)
 
     def publish_reference(self):
+        """
+        t = TransformStamped()
+
+        # Read message content and assign it to
+        # corresponding tf variables
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = "tless-obj_000031"
+        t.child_frame_id = "current_object"
+        t.transform.translation.x = 0.0
+        t.transform.translation.y = 0.0
+        t.transform.translation.z = 0.0
+        t.transform.rotation.x = 0.0
+        t.transform.rotation.y = 0.0
+        t.transform.rotation.z = 0.0
+        t.transform.rotation.w = 1.0
+
+        # Send the transformation
+        self.tf_static_broadcaster.sendTransform(t)
+        """
         msg = weighted_traj_point_to_mpc_msg(self._point)
         if self._point.point.id < 50:
             msg.w_pose = [0.0] * 6
@@ -134,3 +182,7 @@ def main():
         pass
 
     rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
