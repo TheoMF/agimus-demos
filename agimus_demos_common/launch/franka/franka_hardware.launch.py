@@ -98,7 +98,7 @@ def launch_setup(
         controller_manager_node,
         franka_gripper_launch,
         spawn_default_controller,
-        disable_franka_collisions_node,
+        # disable_franka_collisions_node,
     ]
 
 

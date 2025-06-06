@@ -16,6 +16,7 @@ from agimus_controller_ros.ros_utils import (
     transform_msg_to_se3,
     weighted_traj_point_to_mpc_msg,
     se3_to_transform_msg,
+    pose_msg_to_se3,
 )
 from agimus_controller.trajectory import (
     TrajectoryPoint,
@@ -41,12 +42,15 @@ class ReferencePublisher(TrajectoryPublisherBase):
             ],
         )
         self._dt = params[0].double_value
-
+        """
         self.vision_client = AsyncSubscriber(
             self,
             PoseStamped,
             "/object/detections",
-            qos_profile_system_default,
+            5,
+        )"""
+        self.create_subscription(
+            PoseStamped, "/object/detections", self.apriltag_callback, 5
         )
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -58,6 +62,7 @@ class ReferencePublisher(TrajectoryPublisherBase):
         self.end_effector_frame = "fer_hand_tcp"
         self.camera_frame = "camera_color_optical_frame"
         self.object_frame = "tless-obj_000031"
+        self.wMo = None
 
     def ready_callback(self):
         # Call on_timer function every second
@@ -76,10 +81,14 @@ class ReferencePublisher(TrajectoryPublisherBase):
             )
             return None
 
+    def apriltag_callback(self, pose_msg):
+        self.wMo_msg = pose_msg
+        self.wMo = pose_msg_to_se3(pose_msg.pose)
+
     def initialize_transform(self):
         # Timer callback for initialization
         # It waits until a transform in TF is found.
-
+        """
         cMo_msg = self.get_transform(
             self.camera_frame, self.object_frame, rclpy.time.Time()
         )
@@ -98,16 +107,43 @@ class ReferencePublisher(TrajectoryPublisherBase):
         self._wMo = transform_msg_to_se3(wMc_msg.transform) * self._cMo
         self._wMee = transform_msg_to_se3(wMee_msg.transform)
         self._oMee = self._wMo.inverse() * self._wMee
+        """
+        if self.wMo is None:
+            self.get_logger().info(
+                f"wait vision",
+                throttle_duration_sec=1.0,
+            )
+            return
+        wMee_msg = self.get_transform(
+            self.world_frame, self.end_effector_frame, self.wMo_msg.header.stamp
+        )
+        if wMee_msg is None:
+            wMee_msg = self.get_transform(
+                self.world_frame, self.end_effector_frame, rclpy.time.Time()
+            )
+        self._wMee = transform_msg_to_se3(wMee_msg.transform)
+        self._oMee = self.wMo.inverse() * self._wMee
+
+        test_msg = self.get_transform(
+            self.world_frame, "current_object", rclpy.time.Time()
+        )
+        if test_msg is None:
+            self.get_logger().warn(
+                f"no transform",
+                throttle_duration_sec=1.0,
+            )
+            return
 
         # Send the reference used by vision to TF so that it can be visualized in RViz.
         # This transform isn't used by agimus_controller_node.
+        """
         cMo_msg = TransformStamped()
         cMo_msg.header.stamp = self.get_clock().now().to_msg()
         cMo_msg.header.frame_id = self.object_frame
         cMo_msg.child_frame_id = self.camera_frame + "_reference"
         cMo_msg.transform = se3_to_transform_msg(self._cMo.inverse())
         self.tf_static_broadcaster.sendTransform(cMo_msg)
-
+        """
         model = self.robot_models.robot_model
         data = model.createData()
         q = self.q0
@@ -115,10 +151,10 @@ class ReferencePublisher(TrajectoryPublisherBase):
         a = np.zeros(model.nv)
         tau = pinocchio.rnea(model, data, q, v, a)
 
-        w_q = 0.01 * np.ones(model.nv)
-        w_v = 0.01 * np.ones(model.nv)
+        w_q = 1.0 * np.ones(model.nv)
+        w_v = 0.1 * np.ones(model.nv)
         w_a = 0.01 * np.ones(model.nv)
-        w_tau = 0.000001 * np.ones(model.nv)
+        w_tau = 0.001 * np.ones(model.nv)
         w_pose = 1.0 * np.ones(6)
 
         self._point = WeightedTrajectoryPoint(
@@ -128,14 +164,14 @@ class ReferencePublisher(TrajectoryPublisherBase):
                 robot_velocity=v,
                 robot_acceleration=a,
                 robot_effort=tau,
-                end_effector_poses={self.camera_frame + "_vs": self._oMee.inverse()},
+                end_effector_poses={self.end_effector_frame + "_vs": self._oMee},
             ),
             weights=TrajectoryPointWeights(
                 w_robot_configuration=w_q,
                 w_robot_velocity=w_v,
                 w_robot_acceleration=w_a,
                 w_robot_effort=w_tau,
-                w_end_effector_poses={self.camera_frame + "_vs": w_pose},
+                w_end_effector_poses={self.end_effector_frame + "_vs": w_pose},
             ),
         )
 
@@ -147,6 +183,15 @@ class ReferencePublisher(TrajectoryPublisherBase):
         self.timer = self.create_timer(self._dt, self.publish_reference)
 
     def publish_reference(self):
+        test_msg = self.get_transform(
+            self.world_frame, "current_object", rclpy.time.Time()
+        )
+        if test_msg is None:
+            self.get_logger().warn(
+                f"no transform",
+                throttle_duration_sec=1.0,
+            )
+            return
         """
         t = TransformStamped()
 

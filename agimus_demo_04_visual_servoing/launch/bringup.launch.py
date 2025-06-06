@@ -5,6 +5,8 @@ from launch.launch_description_entity import LaunchDescriptionEntity
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import Command, FindExecutable
+from launch_ros.parameter_descriptions import ParameterValue
 from agimus_demos_common.mpc_debugger_node import mpc_debugger_node
 
 
@@ -62,7 +64,32 @@ def launch_setup(
         vision_nodes.append(happypose_to_tf_node)
     else:
         pass
-
+    environment_description = ParameterValue(
+        Command(
+            [
+                PathJoinSubstitution([FindExecutable(name="xacro")]),
+                " ",
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("agimus_demo_03_mpc_dummy_traj"),
+                        "urdf",
+                        "obstacles.xacro",
+                    ]
+                ),
+                # Convert dict to list of parameters
+            ]
+        ),
+        value_type=str,
+    )
+    environment_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="environment_publisher",
+        output="screen",
+        remappings=[("robot_description", "environment_description")],
+        parameters=[{"robot_description": environment_description}],
+    )
+    """
     environment_publisher_node = Node(
         package="agimus_demos_common",
         executable="string_publisher",
@@ -73,7 +100,7 @@ def launch_setup(
                 "string_value": "<robot name='empty'><link name='env'/></robot>",
             }
         ],
-    )
+    )"""
 
     reference_publisher_node = Node(
         package="agimus_demo_04_visual_servoing",
@@ -86,17 +113,17 @@ def launch_setup(
 
     return [
         franka_robot_launch,
-        reference_publisher_node,
         wait_for_non_zero_joints_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=wait_for_non_zero_joints_node,
                 on_exit=[
+                    reference_publisher_node,
                     agimus_controller_node,
                     environment_publisher_node,
-                    mpc_debugger_node("fer_hand_tcp", parent_frame="fer_link0"),
-                ]
-                + vision_nodes,
+                    # mpc_debugger_node("fer_hand_tcp", parent_frame="fer_link0"),
+                ],
+                # + vision_nodes,
             )
         ),
     ]
